@@ -1,0 +1,79 @@
+import tkinter as tk
+import math
+
+# --- Functions ---
+def click(event):
+    text = event.widget.cget("text")
+
+    if text == "=":
+        try:
+            expression = entry.get()
+            expression = expression.replace("^", "**")  # Handle ^ as power
+            result = eval(expression)
+            entry.delete(0, tk.END)
+            entry.insert(tk.END, result)
+        except Exception:
+            entry.delete(0, tk.END)
+            entry.insert(tk.END, "Error")
+
+    elif text == "C":
+        entry.delete(0, tk.END)
+
+    elif text == "←":  # Backspace
+        entry.delete(len(entry.get()) - 1)
+
+    else:
+        entry.insert(tk.END, text)
+
+
+# --- Setup GUI ---
+root = tk.Tk()
+root.title("All-in-One Calculator")
+
+entry = tk.Entry(root, font=("Arial", 20), borderwidth=5, relief=tk.RIDGE, justify="right")
+entry.pack(fill=tk.BOTH, ipadx=8, pady=10, padx=10)
+
+# --- Button Layout ---
+buttons = [
+    ["7", "8", "9", "/", "sin", "cos"],
+    ["4", "5", "6", "*", "tan", "sqrt"],
+    ["1", "2", "3", "-", "log", "ln"],
+    ["0", ".", "=", "+", "^", "C"],
+    ["(", ")", "π", "e", "←"]
+]
+
+# --- Create Buttons ---
+for row in buttons:
+    frame = tk.Frame(root)
+    frame.pack(expand=True, fill="both")
+    for btn_text in row:
+        button = tk.Button(
+            frame, text=btn_text, font=("Arial", 16), relief=tk.GROOVE,
+            border=0, padx=10, pady=10
+        )
+        button.pack(side=tk.LEFT, expand=True, fill="both")
+        button.bind("<Button-1>", click)
+
+
+# --- Replace math functions for eval() ---
+def safe_eval(expression):
+    allowed_names = {name: obj for name, obj in math.__dict__.items()}
+    allowed_names.update({"__builtins__": {}})
+    return eval(expression, allowed_names)
+
+
+# --- Insert π and e properly ---
+def insert_specials(event):
+    text = event.widget.cget("text")
+    if text == "π":
+        entry.insert(tk.END, str(math.pi))
+    elif text == "e":
+        entry.insert(tk.END, str(math.e))
+
+# Bind π and e buttons
+for child in root.winfo_children():
+    for frame_child in child.winfo_children():
+        if frame_child.cget("text") in ["π", "e"]:
+            frame_child.bind("<Button-1>", insert_specials)
+
+root.mainloop()
